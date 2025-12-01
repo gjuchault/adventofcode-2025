@@ -9,16 +9,13 @@ pub fn build(b: *std.Build) void {
     .target = target,
   });
 
-  var src_folder = std.fs.cwd().openDir("src", .{ .iterate = true }) catch |err| {
-    std.log.err("error: {any}", .{ err });
-    std.process.exit(1);
-  };
-  defer src_folder.close();
+  var src_dir = std.fs.cwd().openDir("src", .{ .iterate = true }) catch |err| @panic(@errorName(err));
+  defer src_dir.close();
 
-  var src_folder_iterator = src_folder.iterate();
-  while (src_folder_iterator.next() catch unreachable) |dirContent| {
-    if (dirContent.kind == .directory) {
-      const main_path = std.fmt.allocPrint(b.allocator, "src/{s}/main.zig", .{dirContent.name}) catch unreachable;
+  var src_dir_iterator = src_dir.iterate();
+  while (src_dir_iterator.next() catch |err| @panic(@errorName(err))) |dir_content| {
+    if (dir_content.kind == .directory) {
+      const main_path = std.fmt.allocPrint(b.allocator, "src/{s}/main.zig", .{dir_content.name}) catch |err| @panic(@errorName(err));
       defer b.allocator.free(main_path);
 
       const exe = b.addExecutable(.{
@@ -35,7 +32,7 @@ pub fn build(b: *std.Build) void {
 
       b.installArtifact(exe);
 
-      const run_step = b.step(dirContent.name, "Run the app");
+      const run_step = b.step(dir_content.name, "Run the app");
       const run_cmd = b.addRunArtifact(exe);
       run_step.dependOn(&run_cmd.step);
 
