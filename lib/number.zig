@@ -1,0 +1,105 @@
+const std = @import("std");
+
+pub fn digitsInNumber(input: usize) usize {
+    var digits_in_input: usize = 0;
+    var input_copy = input;
+    while (input_copy > 0) {
+        input_copy = @divTrunc(input_copy, 10);
+        digits_in_input += 1;
+    }
+
+    return digits_in_input;
+}
+
+pub fn stripRightDigits(input: usize, digits: usize) usize {
+    var input_copy = input;
+    for (0..digits) |_| {
+        input_copy = @divTrunc(input_copy, 10);
+    }
+
+    return input_copy;
+}
+
+pub fn stripLeftDigits(input: usize, digits: usize) usize {
+    const total_digits = digitsInNumber(input);
+    if (digits >= total_digits) {
+        return 0;
+    }
+    const digits_to_keep = total_digits - digits;
+    const modulus = std.math.pow(usize, 10, digits_to_keep);
+    return @mod(input, modulus);
+}
+
+pub fn splitEvenlyIn(allocator: std.mem.Allocator, input: usize, size: usize) !std.ArrayList(usize) {
+    var result = std.ArrayList(usize).empty;
+    result.ensureTotalCapacity(allocator, 10) catch |err| return err;
+
+    var input_copy = input;
+
+    while (input_copy > 0) {
+        const total_digits = digitsInNumber(input_copy);
+        const chunk_size = if (size > total_digits) total_digits else size;
+
+        // Get leftmost chunk_size digits
+        const digits_to_strip_from_right = total_digits - chunk_size;
+        const leftmost_chunk = stripRightDigits(input_copy, digits_to_strip_from_right);
+
+        // Remove leftmost chunk_size digits
+        input_copy = stripLeftDigits(input_copy, chunk_size);
+
+        try result.append(allocator, leftmost_chunk);
+    }
+
+    return result;
+}
+
+test "digitsInNumber" {
+    try std.testing.expectEqual(5, digitsInNumber(12345));
+    try std.testing.expectEqual(10, digitsInNumber(1234567890));
+    try std.testing.expectEqual(1, digitsInNumber(1));
+}
+
+test "stripRightDigits" {
+    try std.testing.expectEqual(123, stripRightDigits(12345, 2));
+    try std.testing.expectEqual(12, stripRightDigits(12345, 3));
+    try std.testing.expectEqual(1, stripRightDigits(12345, 4));
+    try std.testing.expectEqual(0, stripRightDigits(12345, 5));
+
+    try std.testing.expectEqual(10, stripRightDigits(100, 1));
+    try std.testing.expectEqual(1, stripRightDigits(100, 2));
+    try std.testing.expectEqual(0, stripRightDigits(100, 3));
+}
+
+test "stripLeftDigits" {
+    try std.testing.expectEqual(345, stripLeftDigits(12345, 2));
+    try std.testing.expectEqual(45, stripLeftDigits(12345, 3));
+    try std.testing.expectEqual(5, stripLeftDigits(12345, 4));
+    try std.testing.expectEqual(0, stripLeftDigits(12345, 5));
+
+    try std.testing.expectEqual(0, stripLeftDigits(100, 1));
+    try std.testing.expectEqual(0, stripLeftDigits(100, 2));
+    try std.testing.expectEqual(0, stripLeftDigits(100, 3));
+}
+
+test "splitEvenlyIn" {
+    const allocator = std.testing.allocator;
+    var test1 = try splitEvenlyIn(allocator, 123456, 2);
+    var test2 = try splitEvenlyIn(allocator, 123456, 3);
+    var test3 = try splitEvenlyIn(allocator, 123456, 4);
+    var test4 = try splitEvenlyIn(allocator, 123456, 5);
+    var test5 = try splitEvenlyIn(allocator, 123456, 6);
+
+    defer {
+        test1.deinit(allocator);
+        test2.deinit(allocator);
+        test3.deinit(allocator);
+        test4.deinit(allocator);
+        test5.deinit(allocator);
+    }
+
+    try std.testing.expectEqualSlices(usize, &[_]usize{ 12, 34, 56 }, test1.items);
+    try std.testing.expectEqualSlices(usize, &[_]usize{ 123, 456 }, test2.items);
+    try std.testing.expectEqualSlices(usize, &[_]usize{ 1234, 56 }, test3.items);
+    try std.testing.expectEqualSlices(usize, &[_]usize{ 12345, 6 }, test4.items);
+    try std.testing.expectEqualSlices(usize, &[_]usize{123456}, test5.items);
+}
