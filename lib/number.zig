@@ -53,6 +53,17 @@ pub fn splitEvenlyIn(allocator: std.mem.Allocator, input: usize, size: usize) !s
     return result;
 }
 
+pub fn mergeDigits(comptime T: type, input: []const T) usize {
+    var result: usize = 0;
+
+    const len: T = @intCast(input.len);
+    for (input, 0..) |digit, index| {
+        result += std.math.pow(usize, 10, len - index - 1) * digit;
+    }
+
+    return result;
+}
+
 test "digitsInNumber" {
     try std.testing.expectEqual(5, digitsInNumber(12345));
     try std.testing.expectEqual(10, digitsInNumber(1234567890));
@@ -102,4 +113,9 @@ test "splitEvenlyIn" {
     try std.testing.expectEqualSlices(usize, &[_]usize{ 1234, 56 }, test3.items);
     try std.testing.expectEqualSlices(usize, &[_]usize{ 12345, 6 }, test4.items);
     try std.testing.expectEqualSlices(usize, &[_]usize{123456}, test5.items);
+}
+
+test "mergeDigits" {
+    try std.testing.expectEqual(51423, mergeDigits(usize, &[_]usize{5,1,4,2,3}));
+    try std.testing.expectEqual(51423, mergeDigits(u16, &[_]u16{5,1,4,2,3}));
 }

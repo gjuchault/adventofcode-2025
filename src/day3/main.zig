@@ -25,15 +25,14 @@ pub fn main() !void {
     const part1_test1 = part1(allocator, files.get("test1.txt").?);
     std.debug.print("part1:test1: {d}\n", .{part1_test1});
 
-    // 17155 too low
     const part1_input = part1(allocator, files.get("input.txt").?);
     std.debug.print("part1:input: {d}\n", .{part1_input});
 
-    // const part2_test1 = part2(allocator, files.get("test1.txt").?);
-    // std.debug.print("part2:test1: {d}\n", .{part2_test1});
+    const part2_test1 = part2(allocator, files.get("test1.txt").?);
+    std.debug.print("part2:test1: {d}\n", .{part2_test1});
 
-    // const part2_input = part2(allocator, files.get("input.txt").?);
-    // std.debug.print("part2:input: {d}\n", .{part2_input});
+    const part2_input = part2(allocator, files.get("input.txt").?);
+    std.debug.print("part2:input: {d}\n", .{part2_input});
 }
 
 const Bank = struct {
@@ -73,7 +72,7 @@ pub fn part1(allocator: std.mem.Allocator, input: []const u8) usize {
 
     var result: usize = 0;
 
-    for (banks.items, 0..) |bank, line_n| {
+    for (banks.items) |bank| {
         var max1: u8 = 0;
         var max1_index: usize = 0;
         var max2: u8 = 0;
@@ -118,15 +117,47 @@ pub fn part1(allocator: std.mem.Allocator, input: []const u8) usize {
             intermediate_result = max1 * 10 + max2;
         }
 
-        std.debug.print("line{d}: {d} ({d}) {d} ({d}) = {d}\n", .{line_n + 1, max1, max1_index, max2, max2_index, intermediate_result});
         result += intermediate_result;
     }
 
     return result;
 }
 
-pub fn part2(_: std.mem.Allocator, _: []const u8) usize {
-    const result: usize = 0;
+pub fn part2(allocator: std.mem.Allocator, input: []const u8) usize {
+    var banks = parseBanks(allocator, input) catch |err| lib.die(@src(), err);
+    defer {
+        for (banks.items) |*bank| bank.deinit(allocator);
+        banks.deinit(allocator);
+    }
+
+    var result: usize = 0;
+
+    for (banks.items) |bank| {
+        var top12 = [12]u8{0,0,0,0,0,0,0,0,0,0,0,0};
+        const len = bank.batteries_joltage_rating.items.len;
+        var current_start: usize = 0;
+
+        for (0..12) |iteration| {
+            const current_end = len-(12-iteration);
+            // std.debug.print("starting iteration {d}, loop from {d} to {d}\n", .{iteration, current_start, current_end});
+
+            var max: u8 = 0;
+            var next_start: usize = 0;
+            for (current_start .. current_end + 1) |index| {
+                if (bank.batteries_joltage_rating.items[index] > max) {
+                    max = bank.batteries_joltage_rating.items[index];
+                    next_start = index + 1;
+                    // std.debug.print("  found new max: {d} at {d}\n", .{max, index});
+                }
+            }
+
+            top12[iteration] = max;
+            current_start = next_start;
+        }
+
+        result += lib.number.mergeDigits(u8, &top12);
+    }
+
 
     return result;
 }
