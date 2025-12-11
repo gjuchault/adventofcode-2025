@@ -116,6 +116,6 @@ test "splitEvenlyIn" {
 }
 
 test "mergeDigits" {
-    try std.testing.expectEqual(51423, mergeDigits(usize, &[_]usize{5,1,4,2,3}));
-    try std.testing.expectEqual(51423, mergeDigits(u16, &[_]u16{5,1,4,2,3}));
+    try std.testing.expectEqual(51423, mergeDigits(usize, &[_]usize{ 5, 1, 4, 2, 3 }));
+    try std.testing.expectEqual(51423, mergeDigits(u16, &[_]u16{ 5, 1, 4, 2, 3 }));
 }

@@ -6,7 +6,7 @@ pub fn splitEvenly(allocator: std.mem.Allocator, input: []const u8, size: usize)
 
     var cursor: usize = 0;
     while (cursor < input.len) {
-        try result.append(allocator, input[cursor..@min(input.len, cursor+size)]);
+        try result.append(allocator, input[cursor..@min(input.len, cursor + size)]);
         cursor += size;
     }
 

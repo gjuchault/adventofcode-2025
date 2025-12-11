@@ -55,9 +55,7 @@ fn parseBanks(allocator: std.mem.Allocator, input: []const u8) !std.ArrayList(Ba
             joltages.appendAssumeCapacity(char - 48);
         }
 
-        result.appendAssumeCapacity(.{
-            .batteries_joltage_rating = joltages
-        });
+        result.appendAssumeCapacity(.{ .batteries_joltage_rating = joltages });
     }
 
     return result;
@@ -88,10 +86,9 @@ pub fn part1(allocator: std.mem.Allocator, input: []const u8) usize {
             }
         }
 
-
         if (max1_index == len - 1) {
             // max is last, we need to find max2 before max1 (aka 89)
-            for (0 .. max1_index) |index| {
+            for (0..max1_index) |index| {
                 const joltage = bank.batteries_joltage_rating.items[index];
 
                 if (joltage > max2) {
@@ -101,7 +98,7 @@ pub fn part1(allocator: std.mem.Allocator, input: []const u8) usize {
             }
         } else {
             // max isn't last, we need to find second max after (aka 98)
-            for (max1_index + 1 .. len) |index| {
+            for (max1_index + 1..len) |index| {
                 const joltage = bank.batteries_joltage_rating.items[index];
 
                 if (joltage > max2) {
@@ -133,17 +130,17 @@ pub fn part2(allocator: std.mem.Allocator, input: []const u8) usize {
     var result: usize = 0;
 
     for (banks.items) |bank| {
-        var top12 = [12]u8{0,0,0,0,0,0,0,0,0,0,0,0};
+        var top12 = [12]u8{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
         const len = bank.batteries_joltage_rating.items.len;
         var current_start: usize = 0;
 
         for (0..12) |iteration| {
-            const current_end = len-(12-iteration);
+            const current_end = len - (12 - iteration);
             // std.debug.print("starting iteration {d}, loop from {d} to {d}\n", .{iteration, current_start, current_end});
 
             var max: u8 = 0;
             var next_start: usize = 0;
-            for (current_start .. current_end + 1) |index| {
+            for (current_start..current_end + 1) |index| {
                 if (bank.batteries_joltage_rating.items[index] > max) {
                     max = bank.batteries_joltage_rating.items[index];
                     next_start = index + 1;
@@ -157,7 +154,6 @@ pub fn part2(allocator: std.mem.Allocator, input: []const u8) usize {
 
         result += lib.number.mergeDigits(u8, &top12);
     }
-
 
     return result;
 }
