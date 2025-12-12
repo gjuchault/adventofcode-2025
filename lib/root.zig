@@ -1,8 +1,9 @@
 const std = @import("std");
 
+pub const grid = @import("./grid.zig");
 pub const number = @import("./number.zig");
 pub const string = @import("./string.zig");
-pub const grid = @import("./grid.zig");
+pub const range = @import("./range.zig");
 
 pub fn die(loc: std.builtin.SourceLocation, err: anyerror) noreturn {
     std.debug.panic("panic at {s}:{d}@{s}: {s}", .{ loc.file, loc.line, loc.fn_name, @errorName(err) });
@@ -39,5 +40,6 @@ pub fn readAllTexts(allocator: std.mem.Allocator, day: usize) *std.StringHashMap
 test "lib" {
     std.testing.refAllDecls(@import("./grid.zig"));
     std.testing.refAllDecls(@import("./number.zig"));
+    std.testing.refAllDecls(@import("./range.zig"));
     std.testing.refAllDecls(@import("./string.zig"));
 }

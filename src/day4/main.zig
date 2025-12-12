@@ -112,6 +112,5 @@ pub fn part2(allocator: std.mem.Allocator, input: []const u8) usize {
         }
     }
 
-
     return total_removed;
 }
