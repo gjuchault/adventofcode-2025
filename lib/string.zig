@@ -13,6 +13,30 @@ pub fn splitEvenly(allocator: std.mem.Allocator, input: []const u8, size: usize)
     return result;
 }
 
+pub fn splitBySpaces(allocator: std.mem.Allocator, input: []const u8) !std.ArrayList([]const u8) {
+    var result = try std.ArrayList([]const u8).initCapacity(allocator, input.len);
+    errdefer result.deinit();
+
+    var i: usize = 0;
+    while (i < input.len) {
+        while (i < input.len and input[i] == ' ') {
+            i += 1;
+        }
+
+        if (i >= input.len) break;
+
+        const start = i;
+
+        while (i < input.len and input[i] != ' ') {
+            i += 1;
+        }
+
+        result.appendAssumeCapacity(input[start..i]);
+    }
+
+    return result;
+}
+
 pub fn fromNumber(comptime T: type, allocator: std.mem.Allocator, input: T) ![]const u8 {
     return try std.fmt.allocPrint(allocator, "{d}", .{input});
 }

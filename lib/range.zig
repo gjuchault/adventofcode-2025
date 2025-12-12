@@ -233,5 +233,4 @@ test "merge" {
 
     try mr2.merge(.{ .from = 3, .to = 5 });
     try mr2.merge(.{ .from = 10, .to = 14 });
-    std.debug.print("{any}\n", .{mr2.ranges.items});
 }

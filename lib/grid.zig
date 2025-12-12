@@ -71,6 +71,31 @@ pub fn grid(
             self.rows.deinit(allocator);
         }
 
+        pub fn initEmpty(allocator: std.mem.Allocator, w: usize, h: usize, base_value: GridItem) !Grid {
+            var rows = try Rows.initCapacity(allocator, h);
+            errdefer {
+                for (rows.items) |*row| {
+                    row.deinit(allocator);
+                }
+                rows.deinit(allocator);
+            }
+
+            var y: usize = 0;
+            while (y < h) : (y += 1) {
+                var row = try Row.initCapacity(allocator, w);
+                errdefer row.deinit(allocator);
+
+                var x: usize = 0;
+                while (x < w) : (x += 1) {
+                    try row.append(allocator, base_value);
+                }
+
+                try rows.append(allocator, row);
+            }
+
+            return Grid{ .rows = rows };
+        }
+
         pub fn at(self: *const Grid, x: usize, y: usize) GridItem {
             return self.rows.items[y].items[x];
         }
