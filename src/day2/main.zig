@@ -22,16 +22,16 @@ pub fn main() !void {
         allocator.destroy(files);
     }
 
-    const part1_test1 = part1(allocator, files.get("test1.txt").?);
+    const part1_test1 = try part1(allocator, files.get("test1.txt").?);
     std.debug.print("part1:test1: {d}\n", .{part1_test1});
 
-    const part1_input = part1(allocator, files.get("input.txt").?);
+    const part1_input = try part1(allocator, files.get("input.txt").?);
     std.debug.print("part1:input: {d}\n", .{part1_input});
 
-    const part2_test1 = part2(allocator, files.get("test1.txt").?);
+    const part2_test1 = try part2(allocator, files.get("test1.txt").?);
     std.debug.print("part2:test1: {d}\n", .{part2_test1});
 
-    const part2_input = part2(allocator, files.get("input.txt").?);
+    const part2_input = try part2(allocator, files.get("input.txt").?);
     std.debug.print("part2:input: {d}\n", .{part2_input});
 }
 
@@ -62,11 +62,11 @@ pub fn part1IsInvalidId(input: usize) bool {
     return left_half == right_half;
 }
 
-pub fn part1(allocator: std.mem.Allocator, input: []const u8) usize {
+pub fn part1(allocator: std.mem.Allocator, input: []const u8) !usize {
     var parsed_ranges = std.ArrayList(ProductIdRange).empty;
     defer parsed_ranges.deinit(allocator);
 
-    const input_one_line = std.mem.replaceOwned(u8, allocator, input, "\n", "") catch |err| lib.die(@src(), err);
+    const input_one_line = try std.mem.replaceOwned(u8, allocator, input, "\n", "");
     defer allocator.free(input_one_line);
 
     var ranges = std.mem.splitSequence(u8, input_one_line, ",");
@@ -80,10 +80,10 @@ pub fn part1(allocator: std.mem.Allocator, input: []const u8) usize {
             lib.die(@src(), error.CantSplitProductIdRange);
         }
 
-        parsed_ranges.append(allocator, .{
-            .first_id = std.fmt.parseInt(usize, first_id_str, 10) catch |err| lib.die(@src(), err),
-            .last_id = std.fmt.parseInt(usize, last_id_str.?, 10) catch |err| lib.die(@src(), err),
-        }) catch |err| lib.die(@src(), err);
+        try parsed_ranges.append(allocator, .{
+            .first_id = try std.fmt.parseInt(usize, first_id_str, 10),
+            .last_id = try std.fmt.parseInt(usize, last_id_str.?, 10),
+        });
     }
 
     var result: usize = 0;
@@ -141,11 +141,11 @@ pub fn part2IsInvalidId(input: usize) bool {
     return false;
 }
 
-pub fn part2(allocator: std.mem.Allocator, input: []const u8) usize {
+pub fn part2(allocator: std.mem.Allocator, input: []const u8) !usize {
     var parsed_ranges = std.ArrayList(ProductIdRange).empty;
     defer parsed_ranges.deinit(allocator);
 
-    const input_one_line = std.mem.replaceOwned(u8, allocator, input, "\n", "") catch |err| lib.die(@src(), err);
+    const input_one_line = try std.mem.replaceOwned(u8, allocator, input, "\n", "");
     defer allocator.free(input_one_line);
 
     var ranges = std.mem.splitSequence(u8, input_one_line, ",");
@@ -159,10 +159,10 @@ pub fn part2(allocator: std.mem.Allocator, input: []const u8) usize {
             lib.die(@src(), error.CantSplitProductIdRange);
         }
 
-        parsed_ranges.append(allocator, .{
-            .first_id = std.fmt.parseInt(usize, first_id_str, 10) catch |err| lib.die(@src(), err),
-            .last_id = std.fmt.parseInt(usize, last_id_str.?, 10) catch |err| lib.die(@src(), err),
-        }) catch |err| lib.die(@src(), err);
+        try parsed_ranges.append(allocator, .{
+            .first_id = try std.fmt.parseInt(usize, first_id_str, 10),
+            .last_id = try std.fmt.parseInt(usize, last_id_str.?, 10),
+        });
     }
 
     var result: usize = 0;

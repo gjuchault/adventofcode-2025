@@ -1,14 +1,13 @@
 const std = @import("std");
 
 pub fn digitsInNumber(input: usize) usize {
-    var digits_in_input: usize = 0;
-    var input_copy = input;
-    while (input_copy > 0) {
-        input_copy = @divTrunc(input_copy, 10);
-        digits_in_input += 1;
-    }
+    return if (input == 0) 1 else std.math.log10_int(input) + 1;
+}
 
-    return digits_in_input;
+pub fn asciiToDigit(char: u8) u8 {
+    // 48 is 0 in ascii table
+    if (char < 48 or char > 57) @panic("can't parse character in line");
+    return char - 48;
 }
 
 pub fn stripRightDigits(input: usize, digits: usize) usize {
@@ -32,7 +31,7 @@ pub fn stripLeftDigits(input: usize, digits: usize) usize {
 
 pub fn splitEvenlyIn(allocator: std.mem.Allocator, input: usize, size: usize) !std.ArrayList(usize) {
     var result = std.ArrayList(usize).empty;
-    result.ensureTotalCapacity(allocator, 10) catch |err| return err;
+    result.ensureTotalCapacity(allocator, digitsInNumber(input)) catch |err| return err;
 
     var input_copy = input;
 
@@ -47,7 +46,7 @@ pub fn splitEvenlyIn(allocator: std.mem.Allocator, input: usize, size: usize) !s
         // Remove leftmost chunk_size digits
         input_copy = stripLeftDigits(input_copy, chunk_size);
 
-        try result.append(allocator, leftmost_chunk);
+        result.appendAssumeCapacity(leftmost_chunk);
     }
 
     return result;

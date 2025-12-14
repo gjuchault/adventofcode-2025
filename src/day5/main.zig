@@ -22,23 +22,23 @@ pub fn main() !void {
         allocator.destroy(files);
     }
 
-    const part1_test1 = part1(allocator, files.get("test1.txt").?);
+    const part1_test1 = try part1(allocator, files.get("test1.txt").?);
     std.debug.print("part1:test1: {d}\n", .{part1_test1});
 
-    const part1_input = part1(allocator, files.get("input.txt").?);
+    const part1_input = try part1(allocator, files.get("input.txt").?);
     std.debug.print("part1:input: {d}\n", .{part1_input});
 
-    const part2_test1 = part2(allocator, files.get("test1.txt").?);
+    const part2_test1 = try part2(allocator, files.get("test1.txt").?);
     std.debug.print("part2:test1: {d}\n", .{part2_test1});
 
-    const part2_input = part2(allocator, files.get("input.txt").?);
+    const part2_input = try part2(allocator, files.get("input.txt").?);
     std.debug.print("part2:input: {d}\n", .{part2_input});
 }
 
-pub fn part1(allocator: std.mem.Allocator, input: []const u8) usize {
+pub fn part1(allocator: std.mem.Allocator, input: []const u8) !usize {
     var lines = std.mem.splitSequence(u8, input, "\n");
 
-    var ranges = std.ArrayList(lib.range.Range).initCapacity(allocator, 2000) catch |err| lib.die(@src(), err);
+    var ranges = try std.ArrayList(lib.range.Range).initCapacity(allocator, 2000);
     defer ranges.deinit(allocator);
 
     var result: usize = 0;
@@ -50,7 +50,7 @@ pub fn part1(allocator: std.mem.Allocator, input: []const u8) usize {
         }
 
         if (index_of_dash == 0) {
-            const ingredient = std.fmt.parseInt(usize, line, 10) catch |err| lib.die(@src(), err);
+            const ingredient = try std.fmt.parseInt(usize, line, 10);
             for (ranges.items) |range| {
                 if (range.from <= ingredient and range.to >= ingredient) {
                     result += 1;
@@ -64,8 +64,8 @@ pub fn part1(allocator: std.mem.Allocator, input: []const u8) usize {
             if (second_part == null) {
                 lib.die(@src(), error.CantSplitLine);
             }
-            const first_ingredient = std.fmt.parseInt(usize, first_part, 10) catch |err| lib.die(@src(), err);
-            const second_ingredient = std.fmt.parseInt(usize, second_part.?, 10) catch |err| lib.die(@src(), err);
+            const first_ingredient = try std.fmt.parseInt(usize, first_part, 10);
+            const second_ingredient = try std.fmt.parseInt(usize, second_part.?, 10);
 
             ranges.appendAssumeCapacity(.{ .from = first_ingredient, .to = second_ingredient });
         }
@@ -74,10 +74,10 @@ pub fn part1(allocator: std.mem.Allocator, input: []const u8) usize {
     return result;
 }
 
-pub fn part2(allocator: std.mem.Allocator, input: []const u8) usize {
+pub fn part2(allocator: std.mem.Allocator, input: []const u8) !usize {
     var lines = std.mem.splitSequence(u8, input, "\n");
 
-    var ranges = std.ArrayList(lib.range.Range).initCapacity(allocator, 2000) catch |err| lib.die(@src(), err);
+    var ranges = try std.ArrayList(lib.range.Range).initCapacity(allocator, 2000);
     defer ranges.deinit(allocator);
 
     var result: usize = 0;
@@ -97,8 +97,8 @@ pub fn part2(allocator: std.mem.Allocator, input: []const u8) usize {
             if (second_part == null) {
                 lib.die(@src(), error.CantSplitLine);
             }
-            const first_ingredient = std.fmt.parseInt(usize, first_part, 10) catch |err| lib.die(@src(), err);
-            const second_ingredient = std.fmt.parseInt(usize, second_part.?, 10) catch |err| lib.die(@src(), err);
+            const first_ingredient = try std.fmt.parseInt(usize, first_part, 10);
+            const second_ingredient = try std.fmt.parseInt(usize, second_part.?, 10);
 
             ranges.appendAssumeCapacity(.{ .from = first_ingredient, .to = second_ingredient });
         }
@@ -107,11 +107,11 @@ pub fn part2(allocator: std.mem.Allocator, input: []const u8) usize {
     // we can't really loop on each number, we got to keep ranges
     // but we need to merge ranges so we _never_ have ranges overlapping each other
     // this MultiRange lib will do exactly this
-    var merged_ranges = lib.range.MultiRange.initCapacity(allocator, ranges.items.len) catch |err| lib.die(@src(), err);
+    var merged_ranges = try lib.range.MultiRange.initCapacity(allocator, ranges.items.len);
     defer merged_ranges.deinit();
 
     for (ranges.items) |range| {
-        merged_ranges.merge(range) catch |err| lib.die(@src(), err);
+        try merged_ranges.merge(range);
     }
 
     for (merged_ranges.ranges.items) |range| {

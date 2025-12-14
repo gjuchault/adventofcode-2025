@@ -22,16 +22,16 @@ pub fn main() !void {
         allocator.destroy(files);
     }
 
-    const part1_test1 = part1(allocator, files.get("test1.txt").?);
+    const part1_test1 = try part1(allocator, files.get("test1.txt").?);
     std.debug.print("part1:test1: {d}\n", .{part1_test1});
 
-    const part1_input = part1(allocator, files.get("input.txt").?);
+    const part1_input = try part1(allocator, files.get("input.txt").?);
     std.debug.print("part1:input: {d}\n", .{part1_input});
 
-    const part2_test1 = part2(allocator, files.get("test1.txt").?);
+    const part2_test1 = try part2(allocator, files.get("test1.txt").?);
     std.debug.print("part2:test1: {d}\n", .{part2_test1});
 
-    const part2_input = part2(allocator, files.get("input.txt").?);
+    const part2_input = try part2(allocator, files.get("input.txt").?);
     std.debug.print("part2:input: {d}\n", .{part2_input});
 }
 
@@ -49,8 +49,8 @@ fn charToGridItem(input: u8) GridItem {
 
 const Grid = lib.grid.grid(GridItem, charToGridItem);
 
-fn removeRolls(allocator: std.mem.Allocator, grid: *Grid) usize {
-    var rolls_to_remove = std.ArrayList(lib.grid.Point).initCapacity(allocator, 2000) catch |err| lib.die(@src(), err);
+fn removeRolls(allocator: std.mem.Allocator, grid: *Grid) !usize {
+    var rolls_to_remove = try std.ArrayList(lib.grid.Point).initCapacity(allocator, 2000);
     defer rolls_to_remove.deinit(allocator);
 
     var iterator = grid.iterator();
@@ -61,7 +61,7 @@ fn removeRolls(allocator: std.mem.Allocator, grid: *Grid) usize {
             continue;
         }
 
-        var adjacents = grid.adjacents(allocator, point, true) catch |err| lib.die(@src(), err);
+        var adjacents = try grid.adjacents(allocator, point, true);
         defer adjacents.deinit(allocator);
 
         var count_of_adjacent_papers: usize = 0;
@@ -73,7 +73,7 @@ fn removeRolls(allocator: std.mem.Allocator, grid: *Grid) usize {
         }
 
         if (count_of_adjacent_papers < 4) {
-            rolls_to_remove.append(allocator, point) catch |err| lib.die(@src(), err);
+            try rolls_to_remove.append(allocator, point);
         }
     }
 
@@ -86,15 +86,15 @@ fn removeRolls(allocator: std.mem.Allocator, grid: *Grid) usize {
     return removed;
 }
 
-pub fn part1(allocator: std.mem.Allocator, input: []const u8) usize {
-    var grid = Grid.init(allocator, input, 20) catch |err| lib.die(@src(), err);
+pub fn part1(allocator: std.mem.Allocator, input: []const u8) !usize {
+    var grid = try Grid.init(allocator, input, 20);
     defer grid.deinit(allocator);
 
     return removeRolls(allocator, &grid);
 }
 
-pub fn part2(allocator: std.mem.Allocator, input: []const u8) usize {
-    var grid = Grid.init(allocator, input, 20) catch |err| lib.die(@src(), err);
+pub fn part2(allocator: std.mem.Allocator, input: []const u8) !usize {
+    var grid = try Grid.init(allocator, input, 20);
     defer grid.deinit(allocator);
 
     var total_removed: usize = 0;
@@ -103,7 +103,7 @@ pub fn part2(allocator: std.mem.Allocator, input: []const u8) usize {
     while (true) {
         turn += 1;
 
-        const removed = removeRolls(allocator, &grid);
+        const removed = try removeRolls(allocator, &grid);
 
         total_removed += removed;
 

@@ -22,23 +22,23 @@ pub fn main() !void {
         allocator.destroy(files);
     }
 
-    const part1_test1 = part1(allocator, files.get("test1.txt").?);
+    const part1_test1 = try part1(allocator, files.get("test1.txt").?);
     std.debug.print("part1:test1: {d}\n", .{part1_test1});
 
-    const part1_input = part1(allocator, files.get("input.txt").?);
+    const part1_input = try part1(allocator, files.get("input.txt").?);
     std.debug.print("part1:input: {d}\n", .{part1_input});
 
-    const part2_test1 = part2(allocator, files.get("test1.txt").?);
+    const part2_test1 = try part2(allocator, files.get("test1.txt").?);
     std.debug.print("part2:test1: {d}\n", .{part2_test1});
 
-    const part2_test2 = part2(allocator, files.get("test2.txt").?);
+    const part2_test2 = try part2(allocator, files.get("test2.txt").?);
     std.debug.print("part2:test2: {d}\n", .{part2_test2});
 
-    const part2_input = part2(allocator, files.get("input.txt").?);
+    const part2_input = try part2(allocator, files.get("input.txt").?);
     std.debug.print("part2:input: {d}\n", .{part2_input});
 }
 
-pub fn part1(_: std.mem.Allocator, input: []const u8) u32 {
+pub fn part1(_: std.mem.Allocator, input: []const u8) !u32 {
     var dial: i32 = 50;
     var count_of_0: u32 = 0;
 
@@ -46,7 +46,7 @@ pub fn part1(_: std.mem.Allocator, input: []const u8) u32 {
     while (split_lines_iterator.next()) |line| {
         const first_char = line[0];
 
-        const steps = std.fmt.parseInt(i32, line[1..], 10) catch |err| lib.die(@src(), err);
+        const steps = try std.fmt.parseInt(i32, line[1..], 10);
 
         if (first_char == 'L') {
             dial -= steps;
@@ -75,7 +75,7 @@ pub fn part1(_: std.mem.Allocator, input: []const u8) u32 {
     return count_of_0;
 }
 
-pub fn part2(_: std.mem.Allocator, input: []const u8) u32 {
+pub fn part2(_: std.mem.Allocator, input: []const u8) !u32 {
     var dial: i32 = 50;
     var count_of_0: u32 = 0;
 
@@ -83,7 +83,7 @@ pub fn part2(_: std.mem.Allocator, input: []const u8) u32 {
     while (split_lines_iterator.next()) |line| {
         const first_char = line[0];
 
-        var steps = std.fmt.parseInt(i32, line[1..], 10) catch |err| lib.die(@src(), err);
+        var steps = try std.fmt.parseInt(i32, line[1..], 10);
 
         while (steps > 0) {
             if (first_char == 'L') {

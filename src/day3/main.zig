@@ -22,16 +22,16 @@ pub fn main() !void {
         allocator.destroy(files);
     }
 
-    const part1_test1 = part1(allocator, files.get("test1.txt").?);
+    const part1_test1 = try part1(allocator, files.get("test1.txt").?);
     std.debug.print("part1:test1: {d}\n", .{part1_test1});
 
-    const part1_input = part1(allocator, files.get("input.txt").?);
+    const part1_input = try part1(allocator, files.get("input.txt").?);
     std.debug.print("part1:input: {d}\n", .{part1_input});
 
-    const part2_test1 = part2(allocator, files.get("test1.txt").?);
+    const part2_test1 = try part2(allocator, files.get("test1.txt").?);
     std.debug.print("part2:test1: {d}\n", .{part2_test1});
 
-    const part2_input = part2(allocator, files.get("input.txt").?);
+    const part2_input = try part2(allocator, files.get("input.txt").?);
     std.debug.print("part2:input: {d}\n", .{part2_input});
 }
 
@@ -50,9 +50,7 @@ fn parseBanks(allocator: std.mem.Allocator, input: []const u8) !std.ArrayList(Ba
     while (lines.next()) |line| {
         var joltages = try std.ArrayList(u8).initCapacity(allocator, line.len);
         for (line) |char| {
-            // 48 is 0 in ascii table
-            if (char < 48 or char > 57) @panic("can't parse character in line");
-            joltages.appendAssumeCapacity(char - 48);
+            joltages.appendAssumeCapacity(lib.number.asciiToDigit(char));
         }
 
         result.appendAssumeCapacity(.{ .batteries_joltage_rating = joltages });
@@ -61,8 +59,8 @@ fn parseBanks(allocator: std.mem.Allocator, input: []const u8) !std.ArrayList(Ba
     return result;
 }
 
-pub fn part1(allocator: std.mem.Allocator, input: []const u8) usize {
-    var banks = parseBanks(allocator, input) catch |err| lib.die(@src(), err);
+pub fn part1(allocator: std.mem.Allocator, input: []const u8) !usize {
+    var banks = try parseBanks(allocator, input);
     defer {
         for (banks.items) |*bank| bank.deinit(allocator);
         banks.deinit(allocator);
@@ -120,8 +118,8 @@ pub fn part1(allocator: std.mem.Allocator, input: []const u8) usize {
     return result;
 }
 
-pub fn part2(allocator: std.mem.Allocator, input: []const u8) usize {
-    var banks = parseBanks(allocator, input) catch |err| lib.die(@src(), err);
+pub fn part2(allocator: std.mem.Allocator, input: []const u8) !usize {
+    var banks = try parseBanks(allocator, input);
     defer {
         for (banks.items) |*bank| bank.deinit(allocator);
         banks.deinit(allocator);

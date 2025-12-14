@@ -1,4 +1,5 @@
 const std = @import("std");
+const string_lib = @import("./string.zig");
 
 pub const Point = struct {
     x: usize,
@@ -9,6 +10,14 @@ pub const Point = struct {
         return if (a.y == b.y) a.x < b.x else a.y < b.y;
     }
 };
+
+pub fn noop(comptime Out: type, value: Out) fn (u8) Out {
+    return struct {
+        pub fn f(_: u8) Out {
+            return value;
+        }
+    }.f;
+}
 
 pub fn grid(
     comptime GridItem: type,
@@ -166,6 +175,46 @@ pub fn grid(
             }
 
             return result;
+        }
+
+        pub fn to_str(self: *Grid, allocator: std.mem.Allocator, column_sep: u8, line_sep: u8) ![]const u8 {
+            const is_str = comptime string_lib.isTypeStr(GridItem);
+            var str = try std.ArrayList(u8).initCapacity(allocator, self.width() * self.height() * 2);
+
+            for (self.rows.items, 0..) |row, row_idx| {
+                for (row.items, 0..) |cell, col_idx| {
+                    const cell_str = if (is_str)
+                        try std.fmt.allocPrint(allocator, "{s}", .{cell})
+                    else
+                        try std.fmt.allocPrint(allocator, "{any}", .{cell});
+                    try str.appendSlice(allocator, cell_str);
+                    allocator.free(cell_str);
+                    if (col_idx < row.items.len - 1) {
+                        try str.append(allocator, column_sep);
+                    }
+                }
+                if (row_idx < self.rows.items.len - 1) {
+                    try str.append(allocator, line_sep);
+                }
+            }
+
+            return str.toOwnedSlice(allocator);
+        }
+
+        pub fn to_ascii(self: *Grid, allocator: std.mem.Allocator) ![]const u8 {
+            // Assumes GridItem is u8, directly appends ASCII characters
+            var str = try std.ArrayList(u8).initCapacity(allocator, self.width() * self.height() + self.height());
+
+            for (self.rows.items, 0..) |row, row_idx| {
+                for (row.items) |cell| {
+                    try str.append(allocator, cell);
+                }
+                if (row_idx < self.rows.items.len - 1) {
+                    try str.append(allocator, '\n');
+                }
+            }
+
+            return str.toOwnedSlice(allocator);
         }
     };
 }
