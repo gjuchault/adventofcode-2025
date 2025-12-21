@@ -177,24 +177,21 @@ pub fn grid(
             return result;
         }
 
-        pub fn to_str(self: *Grid, allocator: std.mem.Allocator, column_sep: u8, line_sep: u8) ![]const u8 {
+        pub fn to_str(self: *Grid, allocator: std.mem.Allocator, gridItemToChar: fn (GridItem) u8) ![]const u8 {
             const is_str = comptime string_lib.isTypeStr(GridItem);
             var str = try std.ArrayList(u8).initCapacity(allocator, self.width() * self.height() * 2);
 
             for (self.rows.items, 0..) |row, row_idx| {
-                for (row.items, 0..) |cell, col_idx| {
+                for (row.items) |cell| {
                     const cell_str = if (is_str)
                         try std.fmt.allocPrint(allocator, "{s}", .{cell})
                     else
-                        try std.fmt.allocPrint(allocator, "{any}", .{cell});
+                        try std.fmt.allocPrint(allocator, "{c}", .{gridItemToChar(cell)});
                     try str.appendSlice(allocator, cell_str);
                     allocator.free(cell_str);
-                    if (col_idx < row.items.len - 1) {
-                        try str.append(allocator, column_sep);
-                    }
                 }
                 if (row_idx < self.rows.items.len - 1) {
-                    try str.append(allocator, line_sep);
+                    try str.append(allocator, '\n');
                 }
             }
 

@@ -165,9 +165,6 @@ pub fn part2(allocator: std.mem.Allocator, input: []const u8) !usize {
         line_y += 1;
     }
 
-    const grid_str = try grid.to_str(allocator, '|', '\n');
-    defer allocator.free(grid_str);
-
     // 3. start the process
     // 123 328  51 64
     //  45 64  387 23
