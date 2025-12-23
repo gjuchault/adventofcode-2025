@@ -39,11 +39,9 @@ pub fn splitEvenlyIn(allocator: std.mem.Allocator, input: usize, size: usize) !s
         const total_digits = digitsInNumber(input_copy);
         const chunk_size = if (size > total_digits) total_digits else size;
 
-        // Get leftmost chunk_size digits
         const digits_to_strip_from_right = total_digits - chunk_size;
         const leftmost_chunk = stripRightDigits(input_copy, digits_to_strip_from_right);
 
-        // Remove leftmost chunk_size digits
         input_copy = stripLeftDigits(input_copy, chunk_size);
 
         result.appendAssumeCapacity(leftmost_chunk);

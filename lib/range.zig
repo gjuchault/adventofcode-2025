@@ -154,7 +154,6 @@ test "xorRange" {
 }
 
 // This is a holder to a merge function that stores every range in a PriorityQueue
-// and, when asked to merge a range, will make sure to split it so it never overlaps one already in
 pub const MultiRange = struct {
     ranges: std.ArrayList(Range),
     allocator: std.mem.Allocator,

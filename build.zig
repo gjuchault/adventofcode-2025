@@ -9,6 +9,9 @@ pub fn build(b: *std.Build) void {
         .target = target,
     });
 
+    const ziglangSet = b.dependency("ziglangSet", .{});
+    lib.addImport("set", ziglangSet.module("ziglangSet"));
+
     var src_dir = std.fs.cwd().openDir("src", .{ .iterate = true }) catch |err| @panic(@errorName(err));
     defer src_dir.close();
 
@@ -27,9 +30,7 @@ pub fn build(b: *std.Build) void {
                     .root_source_file = b.path(main_path),
                     .target = target,
                     .optimize = optimize,
-                    .imports = &.{
-                        .{ .name = "lib", .module = lib },
-                    },
+                    .imports = &.{ .{ .name = "lib", .module = lib }, .{ .name = "set", .module = ziglangSet.module("ziglangSet") } },
                 }),
             });
 
@@ -52,6 +53,7 @@ pub fn build(b: *std.Build) void {
         .name = "tests",
         .root_module = tests,
     });
+    test_exe.root_module.addImport("set", ziglangSet.module("ziglangSet"));
     const run_tests = b.addRunArtifact(test_exe);
     const test_step = b.step("test", "Run tests");
     test_step.dependOn(&run_tests.step);
