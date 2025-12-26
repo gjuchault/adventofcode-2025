@@ -46,8 +46,8 @@ pub fn part1(allocator: std.mem.Allocator, input: []const u8) !usize {
 
     var result: usize = 0;
 
-    var grid = try lib.grid.grid(usize, lib.grid.noop(usize, 0)).initEmpty(allocator, 1000, 5, 0);
-    defer grid.deinit(allocator);
+    var grid = lib.grid.grid(usize, lib.grid.noop(usize, 0)).initEmpty(allocator, 0);
+    defer grid.deinit();
 
     var operations = try std.ArrayList(Operation).initCapacity(allocator, 1000);
     defer operations.deinit(allocator);
@@ -72,10 +72,9 @@ pub fn part1(allocator: std.mem.Allocator, input: []const u8) !usize {
             defer nums.deinit(allocator);
 
             for (nums.items, 0..) |num_str, x| {
-                if (x >= grid.width() or line_index >= grid.height()) continue;
                 const num = try std.fmt.parseInt(usize, num_str, 10);
 
-                grid.set(x, line_index, num);
+                try grid.set(.{ .x = x, .y = line_index }, num);
             }
         }
 
@@ -86,7 +85,7 @@ pub fn part1(allocator: std.mem.Allocator, input: []const u8) !usize {
         if (x >= operations.items.len) continue;
         var column_result: usize = 0;
         for (0..grid.height()) |y| {
-            const point = grid.at(x, y);
+            const point = grid.at(.{ .x = x, .y = y });
             if (point == 0) {
                 continue;
             }
@@ -146,8 +145,8 @@ pub fn part2(allocator: std.mem.Allocator, input: []const u8) !usize {
     columns_width.appendAssumeCapacity(current_column_width + 1);
 
     // 2. fill a grid
-    var grid = try lib.grid.grid([]const u8, lib.grid.noop([]const u8, "")).initEmpty(allocator, 1000, 5, "");
-    defer grid.deinit(allocator);
+    var grid = lib.grid.grid([]const u8, lib.grid.noop([]const u8, "")).initEmpty(allocator, "");
+    defer grid.deinit();
 
     var line_y: usize = 0;
     while (lines.next()) |line| {
@@ -155,9 +154,8 @@ pub fn part2(allocator: std.mem.Allocator, input: []const u8) !usize {
 
         var column_start: usize = 0;
         for (columns_width.items, 0..) |column_width, x| {
-            if (x >= grid.width() or line_y >= grid.height()) break;
             if (column_start + column_width > line.len) break;
-            grid.set(x, line_y, line[column_start .. column_start + column_width]);
+            try grid.set(.{ .x = x, .y = line_y }, line[column_start .. column_start + column_width]);
 
             column_start += column_width + 1;
         }
@@ -196,25 +194,20 @@ pub fn part2(allocator: std.mem.Allocator, input: []const u8) !usize {
     for (0..operations.items.len) |column_index| {
         const column_width = columns_width.items[column_index];
 
-        var rotated_column_grid = try lib.grid.grid(u8, lib.grid.noop(u8, '0')).initEmpty(
-            allocator,
-            grid.height(),
-            column_width,
-            ' ',
-        );
-        defer rotated_column_grid.deinit(allocator);
+        var rotated_column_grid = lib.grid.grid(u8, lib.grid.noop(u8, '0')).initEmpty(allocator, ' ');
+        defer rotated_column_grid.deinit();
 
         for (0..column_width) |x| {
             for (0..grid.height()) |y| {
                 if (column_index >= grid.width()) continue;
-                const line = grid.at(column_index, y);
+                const line = grid.at(.{ .x = column_index, .y = y });
                 if (x >= line.len) continue;
                 const digit = line[x];
-                rotated_column_grid.set(y, column_width - x - 1, digit);
+                try rotated_column_grid.set(.{ .x = y, .y = column_width - x - 1 }, digit);
             }
         }
 
-        const rotated_str_rep = try rotated_column_grid.to_ascii(allocator);
+        const rotated_str_rep = try rotated_column_grid.toAscii(allocator);
         defer allocator.free(rotated_str_rep);
 
         const operation = operations.items[column_index];
@@ -225,7 +218,7 @@ pub fn part2(allocator: std.mem.Allocator, input: []const u8) !usize {
             var full_number_str = try std.ArrayList(u8).initCapacity(allocator, rotated_column_grid.width());
             defer full_number_str.deinit(allocator);
             for (0..rotated_column_grid.width()) |x| {
-                const digit = rotated_column_grid.at(x, y);
+                const digit = rotated_column_grid.at(.{ .x = x, .y = y });
                 if (digit == ' ') {
                     continue;
                 }

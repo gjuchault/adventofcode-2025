@@ -55,7 +55,8 @@ fn removeRolls(allocator: std.mem.Allocator, grid: *Grid) !usize {
 
     var iterator = grid.iterator();
     while (iterator.next()) |point_and_value| {
-        const point, const value = point_and_value;
+        const point = point_and_value.key_ptr.*;
+        const value = point_and_value.value_ptr.*;
 
         if (value == .empty) {
             continue;
@@ -66,7 +67,7 @@ fn removeRolls(allocator: std.mem.Allocator, grid: *Grid) !usize {
 
         var count_of_adjacent_papers: usize = 0;
         for (adjacents.items) |adjacent| {
-            const adjacent_value = grid.at(adjacent.x, adjacent.y);
+            const adjacent_value = grid.at(.{ .x = adjacent.x, .y = adjacent.y });
             if (adjacent_value == .roll_of_paper) {
                 count_of_adjacent_papers += 1;
             }
@@ -80,22 +81,22 @@ fn removeRolls(allocator: std.mem.Allocator, grid: *Grid) !usize {
     const removed = rolls_to_remove.items.len;
 
     for (rolls_to_remove.items) |roll_to_remove| {
-        grid.set(roll_to_remove.x, roll_to_remove.y, .empty);
+        try grid.set(.{ .x = roll_to_remove.x, .y = roll_to_remove.y }, .empty);
     }
 
     return removed;
 }
 
 pub fn part1(allocator: std.mem.Allocator, input: []const u8) !usize {
-    var grid = try Grid.init(allocator, input, 20);
-    defer grid.deinit(allocator);
+    var grid = try Grid.init(allocator, input, .empty);
+    defer grid.deinit();
 
     return removeRolls(allocator, &grid);
 }
 
 pub fn part2(allocator: std.mem.Allocator, input: []const u8) !usize {
-    var grid = try Grid.init(allocator, input, 20);
-    defer grid.deinit(allocator);
+    var grid = try Grid.init(allocator, input, .empty);
+    defer grid.deinit();
 
     var total_removed: usize = 0;
 

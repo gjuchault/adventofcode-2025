@@ -55,8 +55,8 @@ const Grid = lib.grid.grid(GridItem, charToGridItem);
 pub fn part1(allocator: std.mem.Allocator, input: []const u8) !usize {
     var result: usize = 0;
 
-    var grid = try Grid.init(allocator, input, null);
-    defer grid.deinit(allocator);
+    var grid = try Grid.init(allocator, input, .space);
+    defer grid.deinit();
 
     const manifold_point = lib.grid.Point{ .x = @divFloor(grid.width(), 2), .y = 0 };
 
@@ -73,7 +73,7 @@ pub fn part1(allocator: std.mem.Allocator, input: []const u8) !usize {
                 .y = manifold_point.y + 1,
             });
 
-            grid.set(manifold_point.x, manifold_point.y + 1, .beam);
+            try grid.set(.{ .x = manifold_point.x, .y = manifold_point.y + 1 }, .beam);
         }
 
         if (round == grid.height() - 1) {
@@ -86,25 +86,25 @@ pub fn part1(allocator: std.mem.Allocator, input: []const u8) !usize {
             const beam = current_beam_coords.items[beam_index];
 
             const point_below = lib.grid.Point{ .x = beam.x, .y = beam.y + 1 };
-            const item_below = grid.at(point_below.x, point_below.y);
+            const item_below = grid.at(point_below);
 
             switch (item_below) {
                 .beam => continue,
                 .manifold => @panic("manifold below"),
                 .space => {
                     current_beam_coords.appendAssumeCapacity(point_below);
-                    grid.set(point_below.x, point_below.y, .beam);
+                    try grid.set(point_below, .beam);
                 },
                 .splitter => {
                     result += 1;
 
                     if (beam.x > 0) {
                         current_beam_coords.appendAssumeCapacity(.{ .x = beam.x - 1, .y = beam.y + 1 });
-                        grid.set(beam.x - 1, beam.y + 1, .beam);
+                        try grid.set(.{ .x = beam.x - 1, .y = beam.y + 1 }, .beam);
                     }
                     if (beam.x < grid.width()) {
                         current_beam_coords.appendAssumeCapacity(.{ .x = beam.x + 1, .y = beam.y + 1 });
-                        grid.set(beam.x + 1, beam.y + 1, .beam);
+                        try grid.set(.{ .x = beam.x + 1, .y = beam.y + 1 }, .beam);
                     }
                 },
             }
@@ -153,8 +153,8 @@ pub fn get_next_results(
 // the idea for part 2 is to tag bottom line: a last splitter = 2, a last space = 1
 // then loop on line above and for each splitter, sum scores from below
 pub fn part2(allocator: std.mem.Allocator, input: []const u8) !usize {
-    var grid = try Grid.init(allocator, input, null);
-    defer grid.deinit(allocator);
+    var grid = try Grid.init(allocator, input, .space);
+    defer grid.deinit();
 
     const manifold_point = lib.grid.Point{ .x = @divFloor(grid.width(), 2), .y = 0 };
     const first_splitter_point = lib.grid.Point{ .x = manifold_point.x, .y = manifold_point.y + 2 };
@@ -168,7 +168,7 @@ pub fn part2(allocator: std.mem.Allocator, input: []const u8) !usize {
     while (true) {
         for (0..grid.width()) |x| {
             const point = lib.grid.Point{ .x = x, .y = line };
-            const item = grid.at(point.x, point.y);
+            const item = grid.at(point);
 
             if (item == .space) {
                 if (point.y == grid.height() - 2) {
